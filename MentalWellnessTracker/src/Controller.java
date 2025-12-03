@@ -100,18 +100,74 @@ public class Controller {
         return dbConnector.getUserGoals(currUser.getUserId());
     }
 
+    //ADDED
+
+    // read a single goal
+    public Goal getGoal(int goalId){
+        if(currUser == null) return null;
+        return dbConnector.getGoalById(goalId, currUser.getUserId());
+    }
+
+    // NEW: update an existing goal
+    public String updateGoal(int goalId, String name, String description){
+        if(currUser == null) return "Error: Must be logged in.";
+        if(name == null || name.isEmpty()) return "Error: Goal name cannot be empty.";
+        Goal g = new Goal(goalId, currUser.getUserId(), name, description, null);
+        if(dbConnector.updateGoal(g)){
+            return "Goal updated successfully!";
+        } else {
+            return "Error: Failed to update goal.";
+        }
+    }
+
     // habits
     //create
-    public String createHabitLog(int logId, int userID, int goalId, Date completed_date, String notes){
+    public String createHabitLog(int goalId, Date completedDate, String notes){
         if(currUser==null) return"Error: Must be logged in to add a habit.";
-        if(notes.isEmpty())return"Error: Habit notes cannot be empty";
+        if(notes == null) notes = "";
 
-        HabitLog habitLog = new HabitLog(0, goalId,currUser.getUserId(), null, notes);
+        HabitLog habitLog = new HabitLog(0, goalId, currUser.getUserId(), completedDate, notes);
 
         if(dbConnector.insertHabitLog(habitLog)){
-            return "Log '"+logId+"' added successfully!";
+            return "Habit log added successfully!";
         }else{
             return "Error: Failed to log habit completion.";
+        }
+    }
+
+    //ADDED
+    // read 
+    public List<HabitLog> getLogsForGoal(int goalId){
+        if(currUser == null) return Collections.emptyList();
+        return dbConnector.getLogsForGoal(goalId, currUser.getUserId());
+    }
+
+    // read single habit log
+    public HabitLog getHabitLog(int logId){
+        if(currUser == null) return null;
+        return dbConnector.getHabitLogById(logId, currUser.getUserId());
+    }
+
+    // update 
+    public String updateHabitLog(int logId, Date completedDate, String notes){
+        if(currUser == null) return "Error: Must be logged in.";
+        HabitLog existing = dbConnector.getHabitLogById(logId, currUser.getUserId());
+        if(existing == null) return "Error: Habit log not found.";
+        HabitLog updated = new HabitLog(logId, existing.getGoalId(), currUser.getUserId(), completedDate, notes);
+        if(dbConnector.updateHabitLog(updated)){
+            return "Habit log updated successfully!";
+        } else {
+            return "Error: Failed to update habit log.";
+        }
+    }
+
+    // delete 
+    public String deleteHabitLog(int logId){
+        if(currUser == null) return "Error: Must be logged in.";
+        if(dbConnector.deleteHabitLog(logId, currUser.getUserId())){
+            return "Habit log deleted successfully!";
+        } else {
+            return "Error: Failed to delete habit log.";
         }
     }
 //    Moods Options and Emotion Options
@@ -124,7 +180,7 @@ public class Controller {
         return dbConnector.getAllEmotionOptions();
     }
 
-//    daily + emotion
+    // daily + emotion
 //    insert mood and emotion
     public String logDailyMood(int moodOptionId, List<Integer>emotionOptionIds){
         if(currUser==null)return "Error: Must be logged in to track mood.";
@@ -157,7 +213,32 @@ public class Controller {
         Mood mood = dbConnector.getDailyMood(currUser.getUserId(),new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         return mood;
     }
-//    insert Emotion
+
+    // update 
+    public String updateTodayMood(int newMoodOptionId){
+        if(currUser == null) return "Error: Must be logged in.";
+        Mood today = getTodayMood();
+        if(today == null) return "Error: No mood logged for today.";
+        if(dbConnector.updateDailyMood(today.getMoodId(), newMoodOptionId)){
+            return "Today's mood updated successfully.";
+        } else {
+            return "Error: Failed to update today's mood.";
+        }
+    }
+
+    // delete 
+    public String removeTodayMood(){
+        if(currUser == null) return "Error: Must be logged in.";
+        Mood today = getTodayMood();
+        if(today == null) return "Error: No mood logged for today.";
+        if(dbConnector.deleteDailyMood(today.getMoodId(), currUser.getUserId())){
+            return "Today's mood removed successfully.";
+        } else {
+            return "Error: Failed to remove today's mood.";
+        }
+    }
+
+    //    insert Emotion
     public String logDailyEmotion(List<Integer>emotionOptionIds){
         if(currUser==null) return "Error: Must be logged in.";
         Mood todayMood = getTodayMood();
@@ -177,6 +258,27 @@ public class Controller {
             return "No specific emotion is selected.";
         }
     }
+
+    //ADDED
+
+    // read 
+    public List<EmotionOption> getSelectedEmotionsForToday(){
+        if(currUser == null) return Collections.emptyList();
+        Mood today = getTodayMood();
+        if(today == null) return Collections.emptyList();
+        return dbConnector.getSelectedEmotionsForMood(today.getMoodId());
+    }
+
+    // delete specific daily emotion
+    public String removeDailyEmotion(int dailyEmotionId){
+        if(currUser == null) return "Error: Must be logged in.";
+        if(dbConnector.deleteDailyEmotion(dailyEmotionId)){
+            return "Emotion selection removed successfully.";
+        } else {
+            return "Error: Failed to remove emotion selection.";
+        }
+    }
+
 //   Method to calculate the average mood level
     public String calculateAverageMoodLevel(){
         if(currUser==null)return "Error: Not Logged in";

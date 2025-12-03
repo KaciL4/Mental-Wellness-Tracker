@@ -204,10 +204,10 @@ public class SQLConnector {
     public int insertGoal(Goal goal){
         String sql ="INSERT INTO GOALS(USER_ID,GOAL_NAME,DESCRIPTION)VALUES(?,?,?)";
         try (Connection conn = connect();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1,goal.getGoalId());
-                ps.setString(2,goal.getGoalName());
-                ps.setString(3,goal.getDescription());
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, goal.getUserId());
+                ps.setString(2, goal.getGoalName());
+                ps.setString(3, goal.getDescription());
 
                 int rows =ps.executeUpdate();
                 if(rows>0){
@@ -222,6 +222,31 @@ public class SQLConnector {
             System.err.println("Insert Goal Error: " + e.getMessage());
             return -1;
         }
+    }
+
+    //ADDED
+    // read single goal
+    public Goal getGoalById(int goalId, int userId) {
+        String sql ="SELECT GOAL_ID,GOAL_NAME,DESCRIPTION,CREATED_AT FROM GOALS WHERE GOAL_ID = ? AND USER_ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, goalId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Goal(
+                            rs.getInt("GOAL_ID"),
+                            userId,
+                            rs.getString("GOAL_NAME"),
+                            rs.getString("DESCRIPTION"),
+                            rs.getString("CREATED_AT")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Read Goal Error: " + e.getMessage());
+        }
+        return null;
     }
 //    read
     public List<Goal>getUserGoals(int userId){
@@ -292,7 +317,68 @@ public class SQLConnector {
             return false;
         }
     }
-//    Read
+
+    //ADDED
+    // read single habit log 
+    public HabitLog getHabitLogById(int logId, int userId) {
+        String sql = "SELECT LOG_ID, GOAL_ID, COMPLETED_DATE, NOTES FROM HABIT_LOGS WHERE LOG_ID = ? AND USER_ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, logId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new HabitLog(
+                            rs.getInt("LOG_ID"),
+                            rs.getInt("GOAL_ID"),
+                            userId,
+                            rs.getDate("COMPLETED_DATE"),
+                            rs.getString("NOTES")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Read HabitLog Error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // update 
+    public boolean updateHabitLog(HabitLog log){
+        String sql = "UPDATE HABIT_LOGS SET COMPLETED_DATE = ?, NOTES = ? WHERE LOG_ID = ? AND USER_ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (log.getCompletedDate() != null) {
+                ps.setDate(1, new java.sql.Date(log.getCompletedDate().getTime()));
+            } else {
+                ps.setNull(1, Types.DATE);
+            }
+            ps.setString(2, log.getNotes());
+            ps.setInt(3, log.getLogId());
+            ps.setInt(4, log.getUserId());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Update HabitLog Error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // delete 
+    public boolean deleteHabitLog(int logId, int userId){
+        String sql ="DELETE FROM HABIT_LOGS WHERE LOG_ID =? AND USER_ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1,logId);
+                ps.setInt(2,userId);
+                return ps.executeUpdate()>0;
+        }catch (SQLException e) {
+            System.err.println("Delete HabitLog Error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Read
     public List<HabitLog>getLogsForGoal(int goalId, int userId){
         String sql ="SELECT LOG_ID, COMPLETED_DATE, NOTES FROM HABIT_LOGS WHERE GOAL_ID = ? AND USER_ID = ?";
         List<HabitLog>habits = new ArrayList<>();
@@ -323,7 +409,7 @@ public class SQLConnector {
 //        MOOD_DATE = DEFAULT TO GET CURRENT DATE
         String sql ="INSERT INTO DAILY_MOOD(USER_ID,MOOD_OPTION_ID)VALUES(?,?)";
         try (Connection conn = connect();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1,mood.getUserId());
             ps.setInt(2,mood.getMoodOptionId());
 
@@ -341,6 +427,36 @@ public class SQLConnector {
             return -1;
         }
     }
+
+    //ADDED
+    // update 
+    public boolean updateDailyMood(int moodId, int newMoodOptionId) {
+        String sql = "UPDATE DAILY_MOOD SET MOOD_OPTION_ID = ? WHERE MOOD_ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, newMoodOptionId);
+            ps.setInt(2, moodId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Update DailyMood Error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // delete 
+    public boolean deleteDailyMood(int moodId, int userId) {
+        String sql = "DELETE FROM DAILY_MOOD WHERE MOOD_ID = ? AND USER_ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, moodId);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Delete DailyMood Error: " + e.getMessage());
+            return false;
+        }
+    }
+
 //    read
     public Mood getDailyMood(int userId,String date){
         String sql ="SELECT MOOD_ID, MOOD_OPTION_ID,CREATED_AT FROM DAILY_MOOD WHERE USER_ID=? AND MOOD_DATE=?";
@@ -431,12 +547,28 @@ public class SQLConnector {
             return false;
         }
     }
+
+    //ADDED
+    // delete
+    public boolean deleteDailyEmotion(int id) {
+        String sql = "DELETE FROM DAILY_EMOTIONS WHERE ID = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Delete DailyEmotion Error: " + e.getMessage());
+            return false;
+        }
+    }
+
 //    Read
     public List<EmotionOption> getSelectedEmotionsForMood(int moodId){
         List<EmotionOption> emotions = new ArrayList<>();
+        // fixed table name: EMOTIONS_OPTIONS (was EMOTION_OPTIONS)
         String sql ="SELECT eo.OPTION_ID, eo.EMOTION_NAME, eo.EMOJI " +
                 "FROM DAILY_EMOTIONS de " +
-                "JOIN EMOTION_OPTIONS eo ON de.OPTION_ID = eo.OPTION_ID " +
+                "JOIN EMOTIONS_OPTIONS eo ON de.OPTION_ID = eo.OPTION_ID " +
                 "WHERE de.MOOD_ID = ?";
         try (Connection conn = connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
