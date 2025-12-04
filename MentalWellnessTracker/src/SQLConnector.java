@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.sql.Date;
 import java.util.*;
 public class SQLConnector {
     private static final String DB_URL = "jdbc:sqlite:database.db";
@@ -304,22 +305,31 @@ public class SQLConnector {
 //    CR for HabitLog
 //    create
     public boolean insertHabitLog(HabitLog log){
-        String sql ="INSERT INTO HABIT_LOGS(GOAL_ID,USER_ID,NOTES) VALUES(?,?,?)";
+        String sql ="INSERT INTO HABIT_LOGS(GOAL_ID,USER_ID,COMPLETED_DATE,NOTES) VALUES(?,?,?,?)";
         try (Connection conn = connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1,log.getGoalId());
-            ps.setInt(2,log.getUserId());
-            ps.setString(3,log.getNotes());
+            ps.setInt(1, log.getGoalId());
+            ps.setInt(2, log.getUserId());
 
-            return ps.executeUpdate() >0;
-        }catch (SQLException e) {
+            // Format as YYYY-MM-DD string
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            if (log.getCompletedDate() != null) {
+                ps.setString(3, sdf.format(log.getCompletedDate()));
+            } else {
+                ps.setString(3, sdf.format(new java.util.Date()));
+            }
+
+            ps.setString(4, log.getNotes());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
             System.err.println("Insert HabitLog Error: " + e.getMessage());
             return false;
         }
     }
 
     //ADDED
-    // read single habit log 
+    // read single habit log
     public HabitLog getHabitLogById(int logId, int userId) {
         String sql = "SELECT LOG_ID, GOAL_ID, COMPLETED_DATE, NOTES FROM HABIT_LOGS WHERE LOG_ID = ? AND USER_ID = ?";
         try (Connection conn = connect();
@@ -328,11 +338,21 @@ public class SQLConnector {
             ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    Date completedDate = null;
+                    try {
+                        String dateStr = rs.getString("COMPLETED_DATE");
+                        if (dateStr != null && !dateStr.isEmpty()) {
+                            completedDate = java.sql.Date.valueOf(dateStr);
+                        }
+                    } catch (Exception e) {
+                        completedDate = new java.sql.Date(System.currentTimeMillis());
+                    }
+
                     return new HabitLog(
                             rs.getInt("LOG_ID"),
                             rs.getInt("GOAL_ID"),
                             userId,
-                            rs.getDate("COMPLETED_DATE"),
+                            completedDate,
                             rs.getString("NOTES")
                     );
                 }
@@ -348,10 +368,11 @@ public class SQLConnector {
         String sql = "UPDATE HABIT_LOGS SET COMPLETED_DATE = ?, NOTES = ? WHERE LOG_ID = ? AND USER_ID = ?";
         try (Connection conn = connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
             if (log.getCompletedDate() != null) {
-                ps.setDate(1, new java.sql.Date(log.getCompletedDate().getTime()));
+                ps.setString(1, sdf.format(log.getCompletedDate()));
             } else {
-                ps.setNull(1, Types.DATE);
+                ps.setString(1, sdf.format(new java.util.Date()));
             }
             ps.setString(2, log.getNotes());
             ps.setInt(3, log.getLogId());
@@ -384,22 +405,38 @@ public class SQLConnector {
         List<HabitLog>habits = new ArrayList<>();
         try (Connection conn = connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, goalId);
-        ps.setInt(2, userId);
+            ps.setInt(1, goalId);
+            ps.setInt(2, userId);
 
-        try(ResultSet rs = ps.executeQuery()){
-            while(rs.next()){
-                habits.add(new HabitLog(
-                        rs.getInt("LOG_ID"),
-                        goalId,
-                        userId,
-                        rs.getDate("COMPLETED_DATE"),
-                        rs.getString("NOTES")
-                ));
+            try(ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    Date completedDate = null;
+                    try {
+                        // Get as string first, then parse
+                        String dateStr = rs.getString("COMPLETED_DATE");
+                        if (dateStr != null && !dateStr.isEmpty()) {
+                            // Parse the date string (format: YYYY-MM-DD)
+                            completedDate = java.sql.Date.valueOf(dateStr);
+                        } else {
+                            completedDate = new java.sql.Date(System.currentTimeMillis());
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Warning: Could not parse date, using current date");
+                        completedDate = new java.sql.Date(System.currentTimeMillis());
+                    }
+
+                    habits.add(new HabitLog(
+                            rs.getInt("LOG_ID"),
+                            goalId,
+                            userId,
+                            completedDate,
+                            rs.getString("NOTES")
+                    ));
+                }
             }
-        }
         }catch (SQLException e) {
             System.err.println("Read HabitLog Error: " + e.getMessage());
+            e.printStackTrace();
         }
         return habits;
     }

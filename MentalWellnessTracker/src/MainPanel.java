@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 
 public class MainPanel extends JPanel {
     private GUI gui;
@@ -40,6 +39,26 @@ public class MainPanel extends JPanel {
         gbc.insets = new Insets(50, 10, 10, 10);
         add(moodSummaryLabel, gbc);
 
+        JButton backBtn = new JButton("Back");
+        backBtn.setPreferredSize(new Dimension(200,50));
+        backBtn.setFont(new Font("Arial",Font.BOLD,15));
+        backBtn.setMargin(new Insets(0, 0, 0, 0));
+        backBtn.setContentAreaFilled(false);
+        backBtn.setBorderPainted(false);
+        backBtn.setFocusPainted(false);
+        backBtn.setForeground(Color.BLUE);
+        backBtn.addActionListener(e -> {
+            gui.showPanel("moodselection");
+        });
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        add(backBtn, gbc);
+
         // ADD EMOTIONS BUTTON
         JButton addEmotionsBtn = new JButton("Add Emotions");
         addEmotionsBtn.setPreferredSize(new Dimension(300, 50));
@@ -69,6 +88,49 @@ public class MainPanel extends JPanel {
         gbc.insets = new Insets(30, 10, 30, 10);
         add(addEmotionsBtn, gbc);
 
+        // ADD GOALS BUTTON
+        JButton goalsBtn = new JButton("Goals");
+        goalsBtn.setPreferredSize(new Dimension(300, 50));
+        goalsBtn.setBackground(new Color(59,130,246));
+        goalsBtn.setForeground(Color.WHITE);
+        goalsBtn.setFocusPainted(false);
+        goalsBtn.setFont(new Font("Arial", Font.BOLD, 16));
+
+        // Action to show GoalPanel
+        goalsBtn.addActionListener(e -> {
+            gui.showPanel("goal");
+
+        });
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.SOUTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.5;
+        gbc.insets = new Insets(30, 10, 30, 10);
+        add(goalsBtn, gbc);
+
+        // ADD HABITS BUTTON
+        JButton habitsBtn = new JButton("Habit");
+        habitsBtn.setPreferredSize(new Dimension(300, 50));
+        habitsBtn.setBackground(new Color(59,130,246));
+        habitsBtn.setForeground(Color.WHITE);
+        habitsBtn.setFocusPainted(false);
+        habitsBtn.setFont(new Font("Arial", Font.BOLD, 16));
+
+        // Action to show HabitLogPanel
+        habitsBtn.addActionListener(e -> {
+            gui.showPanel("habitlog");
+
+        });
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.SOUTHEAST;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.5;
+        gbc.insets = new Insets(30, 10, 30, 10);
+        add(habitsBtn, gbc);
     }
 
 //    method to load and refresh average mood message

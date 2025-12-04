@@ -108,7 +108,7 @@ public class Controller {
         return dbConnector.getGoalById(goalId, currUser.getUserId());
     }
 
-    // NEW: update an existing goal
+    // update
     public String updateGoal(int goalId, String name, String description){
         if(currUser == null) return "Error: Must be logged in.";
         if(name == null || name.isEmpty()) return "Error: Goal name cannot be empty.";

@@ -51,6 +51,8 @@ public class GUI extends JPanel{
         cardPanel.add(new EmotionSelectionPanel(this), "emotionselection");
         cardPanel.add(new AccountManagerPanel(this),"account");
         cardPanel.add(new ChangePasswordPanel(this),"changepassword");
+        cardPanel.add(new GoalPanel(this),"goal");
+        cardPanel.add(new HabitLogPanel(this),"habitlog");
 
         add(cardPanel,BorderLayout.CENTER);
         showPanel("signin");
@@ -59,6 +61,24 @@ public class GUI extends JPanel{
         cardLayout.show(cardPanel,panel);
         if(panel.equals("main")){
             mainPanel.refreshData();
+        }
+        if(panel.equals("goal")){
+            Component[] components = cardPanel.getComponents();
+            for(Component c : components){
+                if(c instanceof GoalPanel){
+                    ((GoalPanel)c).refreshGoals();
+                    break;
+                }
+            }
+        }
+        if(panel.equals("habitlog")){
+            Component[] components = cardPanel.getComponents();
+            for(Component c : components){
+                if(c instanceof HabitLogPanel){
+                    ((HabitLogPanel)c).refreshHabits();
+                    break;
+                }
+            }
         }
     }
 
@@ -95,7 +115,6 @@ public class GUI extends JPanel{
 //            ((AccountManagerPanel)localizablePanels.get("account")).updateFields();
 //        }
 //    }
-
 
     public Controller getController(){
         return controller;
