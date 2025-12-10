@@ -1,15 +1,15 @@
 # Mental Wellness Tracker 🧠
-***
-## **Deliverable 1: Database Design and Core Connectivity**
+
 The Mental Wellness is a desktop application using Java (Java swing) and SQLite to keep track of the user's well-being.
 This application will help users to understand better their mental health condition through a brief questionnaire that assesses user's mood and  their overall well-being.
----
+***
 ### 📌 Prerequisites
 1. **Java JDK 8**
 2. **SQLite JDBC Driver:**  You must download the official Xerial SQLite JDBC driver JAR file.
     Download the latest version of sqlite-jdbc-{version}.jar from the Maven repository or a reliable source.
    (Here where we download ours https://github.com/xerial/sqlite-jdbc/releases)
 3. **Java IDE:** We use **IntelliJ**
+4. **Optinal :** Download DB Browser SQLite to check the the database structure of tis application
 
 ---
 ### 📂 Project Structure
@@ -57,21 +57,31 @@ This application will help users to understand better their mental health condit
 3. Open the folder in a Java IDE (recommend IntelliJ)
 4. Run the Main.java class to launch the application
 ---
-### ✅ Usage Guide to test CRUD Operation
-1) **CREATE: 🛠️**<br>
-    - Create a user in the Sign-up page
-2) **READ: 📖**<br>
-    - Login to the created user in the Sign-in page
-    - If the user exists in the system, it will log in to the main page
-3) **UPDATE: 📰**<br>
-    - Change the created user's password in the Account Management page
-    - By confirming the password change with the "Save Changes" button, it will update to the new password.
-    - After changing the password, colse the application and reopen it to log with the new user password.
-4) **DELETE: 🗑️**<br>
-    - Delete the user by clicking the "Delete Account" button
-    - It will ask user to confirm the deletion of its account
-    - It will log user out of its account
-    - If user tries to log in back, the system will decline the deleted user account
+### ✅ Usage Guide 
+1) **Sign in Panel**<br>
+   - Enter your username and password
+   - Click Login button to log in your account
+   - If you don't have any account yet, click Sign Up link to create your user-account
+3) **Sign up Panel**<br>
+    - Enter a new username and a new password
+    - Click Create Account button to create your account
+    - Click Cancel button if you don<t want to create an new accout (It will bring you back to the Sign in Panel)
+4) **Mood Panel**<br>
+    - After logged in, it directly asks you the select your current mood.
+    - Select a mood and click the Submit Mood button to submit your current mood.
+5) **Main Panel**<br>
+    
+
+6) **Account Management Panel**<br>
+   - It will display your current username and password
+   - The Logout button is to logout your account
+   - The Delete this Account is to delete permanently your current account from the system.
+   - If you want to modify your password, click Change Password Button. It will bring you to the Change Password Panel where you have to enter your current password and your new password. Then click the Save Changes button to update your password to the new one.
+7) **Emotion Selector Panel**<br>
+    - Click Add Emotion button in the Main Panel
+    - It display a list of emotions
+    - Select all emotion that you are currently feeling. (It wll save those checked emotions in the emotion table (DB table))
+8) 
 ---
 ### 🔑 Database Schema 
 
@@ -90,5 +100,6 @@ These tables (excluding 'Options' tables) keep unique logs for every different u
 4. **Daily Emotions and Emotion Options:** <br>
     Similar to the previously mentioned tables, Daily Emotions will keep track of the choices (given by the Emotion Options table) the user made.
     The Daily Emotions table will ask the user to log any emotions they felt throughout the day, to have an even better understanding of their headspace.
+
 
    
