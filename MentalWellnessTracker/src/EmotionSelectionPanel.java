@@ -10,7 +10,7 @@ public class EmotionSelectionPanel extends JPanel implements Localizable{
     private final List<EmotionOption> availableEmotions;
     private final List<JCheckBox> emotionCheckboxes;
     private JLabel statusLabel, titleLabel, subtitleLabel;
-    private JButton submitBtn;
+    private JButton submitBtn, backBtn;
 
     // Updated colors to match the design
     private static final Color HEADER_COLOR = new Color(33, 33, 33);
@@ -105,6 +105,25 @@ public class EmotionSelectionPanel extends JPanel implements Localizable{
 
         add(bottomPanel, BorderLayout.SOUTH);
 
+        // Back button
+        backBtn = new JButton("Back");
+        backBtn.setPreferredSize(new Dimension(140, 50));
+        backBtn.setBackground(SUBMIT_BUTTON_COLOR);
+        backBtn.setForeground(Color.WHITE);
+        backBtn.setFocusPainted(false);
+        backBtn.setFont(new Font("Arial", Font.BOLD, 16));
+        backBtn.setBorder(BorderFactory.createEmptyBorder());
+        backBtn.setBorderPainted(false);
+        backBtn.setOpaque(true);
+        backBtn.addActionListener(e -> gui.showPanel("main"));
+        backBtn.setContentAreaFilled(false);
+        backBtn.setOpaque(true);
+
+        JPanel backButtonPanel =new JPanel(new FlowLayout(FlowLayout.CENTER));
+        backButtonPanel.setBackground(Color.WHITE);
+        backButtonPanel.add(backBtn);
+        bottomPanel.add(backButtonPanel, BorderLayout.CENTER);
+
         // Apply localization
         refreshText();
     }
@@ -194,5 +213,6 @@ public class EmotionSelectionPanel extends JPanel implements Localizable{
         subtitleLabel.setText(messages.getString("emotion.subtitle"));
         submitBtn.setText(messages.getString("emotion.button"));
         statusLabel.setText(messages.getString("emotion.selected.none"));
+        backBtn.setText(messages.getString("button.back"));
     }
 }
