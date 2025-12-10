@@ -12,7 +12,6 @@ public class Mood {
         this.moodOptionId = moodOptionId;
         this.createdAt = createdAt;
     }
-//    getters and setters
 
     public int getMoodId() {
         return moodId;

@@ -13,7 +13,6 @@ public class Goal {
         this.description = description;
         this.createdAt = createdAt;
     }
-//    getters and setter
 
     public int getGoalId() {
         return goalId;

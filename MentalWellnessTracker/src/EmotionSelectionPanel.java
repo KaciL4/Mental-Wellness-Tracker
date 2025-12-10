@@ -2,13 +2,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 
-public class EmotionSelectionPanel extends JPanel {
+public class EmotionSelectionPanel extends JPanel implements Localizable{
     private final GUI gui;
     private final Controller controller;
     private final List<EmotionOption> availableEmotions;
     private final List<JCheckBox> emotionCheckboxes;
-    private JLabel statusLabel;
+    private JLabel statusLabel, titleLabel, subtitleLabel;
+    private JButton submitBtn;
+
     // Updated colors to match the design
     private static final Color HEADER_COLOR = new Color(33, 33, 33);
     private static final Color SUBTITLE_COLOR = new Color(120, 120, 120);
@@ -17,20 +20,25 @@ public class EmotionSelectionPanel extends JPanel {
 
     public EmotionSelectionPanel(GUI gui) {
         this.gui = gui;
+        ResourceBundle messages = gui.getMessages();
         this.controller = gui.getController();
+
         // Data Initialization
         this.availableEmotions = controller.getAvailableEmotionOptions();
+
         this.emotionCheckboxes = new ArrayList<>();
+
         // Panel Setup
         setLayout(new BorderLayout(0, 20));
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
-        // Header Panel (NORTH)
+
+        // Header Panel
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBackground(Color.WHITE);
 
-        JLabel titleLabel = new JLabel("Track Your Emotions");
+        titleLabel = new JLabel("Track Your Emotions");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
         titleLabel.setForeground(HEADER_COLOR);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -38,14 +46,15 @@ public class EmotionSelectionPanel extends JPanel {
 
         headerPanel.add(Box.createVerticalStrut(12));
 
-        JLabel subtitleLabel =new JLabel("Select all the emotions you are currently feeling");
+        subtitleLabel =new JLabel("Select all the emotions you are currently feeling");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setForeground(SUBTITLE_COLOR);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(subtitleLabel);
 
         add(headerPanel, BorderLayout.NORTH);
-        // emotions  Panel (CENTER)
+
+        // Emotions Panel
         JPanel emotionsContainer = new JPanel(new BorderLayout());
         emotionsContainer.setBackground(Color.WHITE);
 
@@ -65,7 +74,7 @@ public class EmotionSelectionPanel extends JPanel {
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(20,0,0,0));
 
         // Status label
-        statusLabel = new JLabel("No emotions selected");
+        statusLabel = new JLabel(messages.getString("emotion.selected.none"));
         statusLabel.setFont(new Font("Arial",Font.PLAIN,14));
         statusLabel.setForeground(SUBTITLE_COLOR);
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -74,7 +83,7 @@ public class EmotionSelectionPanel extends JPanel {
         bottomPanel.add(statusPanel,BorderLayout.WEST);
 
         // Submit button
-        JButton submitBtn = new JButton("Submit");
+        submitBtn = new JButton("Submit");
         submitBtn.setPreferredSize(new Dimension(140, 50));
         submitBtn.setBackground(SUBMIT_BUTTON_COLOR);
         submitBtn.setForeground(Color.WHITE);
@@ -95,22 +104,29 @@ public class EmotionSelectionPanel extends JPanel {
         bottomPanel.add(buttonPanel, BorderLayout.EAST);
 
         add(bottomPanel, BorderLayout.SOUTH);
+
+        // Apply localization
+        refreshText();
     }
+
     private void loadEmotionOptions(JPanel emotionsPanel){
-        if (availableEmotions == null || availableEmotions.isEmpty()) {
-            emotionsPanel.add(new JLabel("No emotion options available to display."));
-            return;
-        }
+//        if (availableEmotions == null || availableEmotions.isEmpty()) {
+//            emotionsPanel.add(new JLabel("No emotion options available to display."));
+//            return;
+//        }
         for (EmotionOption emotion : availableEmotions) {
+
             // Create a panel for each emotion with emoji + text
             JPanel emotionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
             emotionPanel.setBackground(Color.WHITE);
+
             // Checkbox
             JCheckBox checkBox = new JCheckBox();
             checkBox.setBackground(Color.WHITE);
             checkBox.setBorder(BorderFactory.createLineBorder(CHECKBOX_BORDER, 2));
             checkBox.setPreferredSize(new Dimension(24, 24));
             checkBox.addActionListener(e -> updateStatusLabel());
+
             // Emotion name label
             JLabel nameLabel = new JLabel(emotion.getEmotionName());
             nameLabel.setFont(new Font("Arial", Font.PLAIN, 18));
@@ -123,36 +139,60 @@ public class EmotionSelectionPanel extends JPanel {
             emotionsPanel.add(emotionPanel);
         }
     }
+
     private void updateStatusLabel(){
-        int count =0;
+        ResourceBundle messages = gui.getMessages();
+        int count = 0;
         for (JCheckBox checkBox:emotionCheckboxes) {
             if (checkBox.isSelected()) {
                 count++;
             }
         }
         if(count == 0){
-            statusLabel.setText("No emotions selected");
+            statusLabel.setText(messages.getString("emotion.selected.none"));
         } else if(count == 1){
-            statusLabel.setText("1 emotion selected");
+            statusLabel.setText(messages.getString("emotion.selected.one"));
         }else {
-            statusLabel.setText(count +" emotions selected");
+            statusLabel.setText(count + " " + messages.getString("emotion.selected.many"));
         }
     }
+
     private void handleSubmitEmotions() {
+        ResourceBundle messages = gui.getMessages();
+
         List<Integer> selectedEmotionIds = new ArrayList<>();
-        for (int i= 0;i<emotionCheckboxes.size();i++) {
+        for (int i = 0; i < emotionCheckboxes.size(); i++) {
             if (emotionCheckboxes.get(i).isSelected()) {
                 selectedEmotionIds.add(availableEmotions.get(i).getOptionId());
             }
         }
 
-        String result= controller.logDailyEmotion(selectedEmotionIds);
+        String result = controller.logDailyEmotion(selectedEmotionIds);
 
-        if (result.startsWith("Error")){
-            JOptionPane.showMessageDialog(this, result, "Logging Error", JOptionPane.ERROR_MESSAGE);
-        }else{
-            JOptionPane.showMessageDialog(this, result, "Emotions Logged", JOptionPane.INFORMATION_MESSAGE);
+        boolean isError =
+                result.equals(messages.getString("err.login")) ||
+                        result.equals(messages.getString("err.noEmotion"));
+
+        String title = isError
+                ? messages.getString("err.failed")
+                : messages.getString("emotion.log");
+
+        int type = isError ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE;
+
+        JOptionPane.showMessageDialog(this, result, title, type);
+
+        if (!isError) {
             gui.showPanel("main");
         }
+    }
+
+    @Override
+    public void refreshText() {
+        ResourceBundle messages = gui.getMessages();
+
+        titleLabel.setText(messages.getString("emotion.title"));
+        subtitleLabel.setText(messages.getString("emotion.subtitle"));
+        submitBtn.setText(messages.getString("emotion.button"));
+        statusLabel.setText(messages.getString("emotion.selected.none"));
     }
 }

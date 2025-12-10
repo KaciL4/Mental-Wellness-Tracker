@@ -3,15 +3,17 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.ResourceBundle;
 
-public class MoodPanel extends JPanel {
+public class MoodPanel extends JPanel implements Localizable {
 
-    private final GUI gui;
-    private final Controller controller;
+    private  GUI gui;
+    private  Controller controller;
     private List<MoodOption> availableMoods;
     private JPanel selectedMoodPanel = null;
     private int selectedMoodOptionId = -1;
-    private final JButton submitBtn;
+    private  JButton submitBtn;
+    private JLabel titleLabel, subtitleLabel;
 
     private static final String[] MOOD_IMAGE_FILES = {
             "emoji/terrible.png", // MoodLevel 1 (Worst)
@@ -32,7 +34,7 @@ public class MoodPanel extends JPanel {
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBackground(Color.WHITE);
 
-        JLabel titleLabel = new JLabel("How are you feeling today?");
+        titleLabel = new JLabel("How are you feeling today?");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 30));
         titleLabel.setForeground(new Color(230, 100, 50));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -40,7 +42,7 @@ public class MoodPanel extends JPanel {
 
         headerPanel.add(Box.createVerticalStrut(10));
 
-        JLabel subtitleLabel = new JLabel("Select the emoji that best represents your general mood");
+        subtitleLabel = new JLabel("Select the emoji that best represents your general mood");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setForeground(Color.GRAY);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -48,13 +50,13 @@ public class MoodPanel extends JPanel {
 
         add(headerPanel, BorderLayout.NORTH);
 
-        // Mood Emojis Panel (unchanged)
+        // Mood Emojis Panel
         JPanel emojisPanel = new JPanel();
         emojisPanel.setLayout(new GridLayout(1, 0, 20, 0));
         emojisPanel.setBackground(Color.WHITE);
         emojisPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-        // Submit Button (unchanged)
+        // Submit Button
         submitBtn = new JButton("Submit Mood");
         submitBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitBtn.setMaximumSize(new Dimension(300, 40));
@@ -75,7 +77,11 @@ public class MoodPanel extends JPanel {
         add(emojisPanel, BorderLayout.CENTER);
 
         loadMoodOptions(emojisPanel);
+
+        // Apply localization
+        refreshText();
     }
+
     private void loadMoodOptions(JPanel emojisPanel) {
         availableMoods = controller.getAvailableMoodOption();
         if (availableMoods.isEmpty()) {
@@ -123,7 +129,7 @@ public class MoodPanel extends JPanel {
         }
         emojiLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(emojiLabel, BorderLayout.CENTER);
-        // Add mood label below the emoji
+        // Add mood label below the emoji *********
         JLabel label = new JLabel(mood.getMoodLabel());
         label.setFont(new Font("Arial", Font.PLAIN, 12));
         label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -144,25 +150,51 @@ public class MoodPanel extends JPanel {
         });
         return panel;
     }
-    // Helper function to map mood level to file name
+
     private String getFileNameForMoodLevel(int moodLevel) {
         if (moodLevel >= 1 && moodLevel <= MOOD_IMAGE_FILES.length) {
             return MOOD_IMAGE_FILES[moodLevel - 1];
         }
         return "";
     }
-    public void handleSubmitMood() {
-        if (selectedMoodOptionId != -1) {
+        public void handleSubmitMood() {
+            ResourceBundle messages = gui.getMessages();
+
+            if (selectedMoodOptionId == -1) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        messages.getString("err.noData"),
+                        messages.getString("err.title"),
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
             String result = controller.logDailyMood(selectedMoodOptionId, null);
-            if (result.startsWith("Error")) {
-                JOptionPane.showMessageDialog(this, result, "Mood Log Failed", JOptionPane.ERROR_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, result, "Mood Logged", JOptionPane.INFORMATION_MESSAGE);
-                // Navigate to the main application panel
+
+            boolean isError =
+                    result.equals(messages.getString("err.login")) ||
+                            result.equals(messages.getString("err.moodLogged"));
+
+            String title = isError
+                    ? messages.getString("err.failed")
+                    : messages.getString("msg.success");
+
+            int type = isError ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE;
+
+            JOptionPane.showMessageDialog(this, result, title, type);
+
+            if (!isError) {
                 gui.showPanel("main");
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "Please select a mood before submitting.", "Selection Required", JOptionPane.WARNING_MESSAGE);
-        }
+
+    }
+
+    @Override
+    public void refreshText(){
+        ResourceBundle messages = gui.getMessages();
+        titleLabel.setText(messages.getString("mood.title"));
+        subtitleLabel.setText(messages.getString("mood.subtitle"));
+        submitBtn.setText(messages.getString("mood.button"));
     }
 }

@@ -63,7 +63,7 @@ public class SQLConnector {
         }
     }
 
-    //    insert default values into MOOD_OPTIONS table
+    // Insert default values into MOOD_OPTIONS table
     private void insertMoodOptions(Connection conn) {
         String countSQL = "SELECT COUNT(*)FROM MOOD_OPTIONS";
         String insertSQL = "INSERT INTO MOOD_OPTIONS (MOOD_LEVEL,MOOD_LABEL, EMOJI) VALUES (?, ?, ?)";
@@ -94,7 +94,7 @@ public class SQLConnector {
         }
     }
 
-    //    insert default values into EMOTIONS_OPTIONS table
+    // Insert default values into EMOTIONS_OPTIONS table
     private void insertEmotionOptions(Connection conn) {
         String countSQL = "SELECT COUNT(*)FROM EMOTIONS_OPTIONS";
         String insertSQL = "INSERT INTO EMOTIONS_OPTIONS (EMOTION_NAME, EMOJI) VALUES (?, ?)";
@@ -124,8 +124,8 @@ public class SQLConnector {
         }
     }
 
-    //    CRUD Operations for USERS
-//    Create
+
+    // Create
     public boolean insertUser(User user) {
         String sql = "INSERT INTO USERS(USERNAME, PASSWORD) VALUES(?,?)";
         try (Connection c = connect();
@@ -137,7 +137,7 @@ public class SQLConnector {
             if (rows > 0) {
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        user.setUserId(rs.getInt(1));//set genarate ID back to user object
+                        user.setUserId(rs.getInt(1));//set generated ID back to user object
                     }
                 }
                 return true;
@@ -149,7 +149,7 @@ public class SQLConnector {
         }
     }
 
-    //    Read
+    // Read
     public User getUserByUsername(String username) {
         String sql = "SELECT USER_ID, USERNAME,PASSWORD FROM USERS WHERE USERNAME= ?";
         try (Connection conn = connect();
@@ -157,7 +157,7 @@ public class SQLConnector {
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    //map result set data to User object
+                    // map result set data to User object
                     int id = rs.getInt("USER_ID");
                     String uname = rs.getString("USERNAME");
                     String pass = rs.getString("PASSWORD");
@@ -171,7 +171,7 @@ public class SQLConnector {
         }
     }
 
-    //    Update
+    // Update
     public boolean updateUserPassword(int userId, String newPass) {
         String sql = "UPDATE USERS SET PASSWORD = ? WHERE USER_ID=?";
         try (Connection conn = connect();
@@ -186,7 +186,7 @@ public class SQLConnector {
         }
     }
 
-    //    Delete
+    // Delete
     public boolean deleteUser(int userId) {
         String sql = "DELETE FROM USERS WHERE USER_ID = ?";
         try (Connection conn = connect();
@@ -199,9 +199,8 @@ public class SQLConnector {
             return false;
         }
     }
-//-----------------------------------------------------------------------------------------------------
-//    CRUD for GOAL
-//    create
+
+    // Create
     public int insertGoal(Goal goal){
         String sql ="INSERT INTO GOALS(USER_ID,GOAL_NAME,DESCRIPTION)VALUES(?,?,?)";
         try (Connection conn = connect();
@@ -214,42 +213,42 @@ public class SQLConnector {
                 if(rows>0){
                     try(ResultSet rs = ps.getGeneratedKeys()){
                         if(rs.next()){
-                            return rs.getInt(1);//return generated GOAL_ID
+                            return rs.getInt(1); //return generated GOAL_ID
                         }
                     }
                 }
-                return -1; //Indicate failure
+                return -1;
         }catch (SQLException e) {
             System.err.println("Insert Goal Error: " + e.getMessage());
             return -1;
         }
     }
 
-    //ADDED
-    // read single goal
-    public Goal getGoalById(int goalId, int userId) {
-        String sql ="SELECT GOAL_ID,GOAL_NAME,DESCRIPTION,CREATED_AT FROM GOALS WHERE GOAL_ID = ? AND USER_ID = ?";
-        try (Connection conn = connect();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, goalId);
-            ps.setInt(2, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Goal(
-                            rs.getInt("GOAL_ID"),
-                            userId,
-                            rs.getString("GOAL_NAME"),
-                            rs.getString("DESCRIPTION"),
-                            rs.getString("CREATED_AT")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Read Goal Error: " + e.getMessage());
-        }
-        return null;
-    }
-//    read
+//    // Read single goal
+//    public Goal getGoalById(int goalId, int userId) {
+//        String sql ="SELECT GOAL_ID,GOAL_NAME,DESCRIPTION,CREATED_AT FROM GOALS WHERE GOAL_ID = ? AND USER_ID = ?";
+//        try (Connection conn = connect();
+//             PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, goalId);
+//            ps.setInt(2, userId);
+//            try (ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    return new Goal(
+//                            rs.getInt("GOAL_ID"),
+//                            userId,
+//                            rs.getString("GOAL_NAME"),
+//                            rs.getString("DESCRIPTION"),
+//                            rs.getString("CREATED_AT")
+//                    );
+//                }
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Read Goal Error: " + e.getMessage());
+//        }
+//        return null;
+//    }
+
+    // Read
     public List<Goal>getUserGoals(int userId){
         String sql ="SELECT GOAL_ID,GOAL_NAME,DESCRIPTION,CREATED_AT FROM GOALS WHERE USER_ID = ?";
         List<Goal>goals =new ArrayList<>();
@@ -272,7 +271,8 @@ public class SQLConnector {
         }
         return goals;
     }
-//    update
+
+    // Update
     public boolean updateGoal(Goal goal){
         String sql ="UPDATE GOALS SET GOAL_NAME = ?, DESCRIPTION = ? WHERE GOAL_ID = ? AND USER_ID = ?";
         try (Connection conn = connect();
@@ -290,7 +290,8 @@ public class SQLConnector {
             return false;
         }
     }
-//    delete
+
+    // Delete
     public boolean deleteGoal(int goalId){
         String sql ="DELETE FROM GOALS WHERE GOAL_ID =?";
         try (Connection conn = connect();
@@ -302,8 +303,8 @@ public class SQLConnector {
             return false;
         }
     }
-//    CR for HabitLog
-//    create
+
+    // Create
     public boolean insertHabitLog(HabitLog log){
         String sql ="INSERT INTO HABIT_LOGS(GOAL_ID,USER_ID,COMPLETED_DATE,NOTES) VALUES(?,?,?,?)";
         try (Connection conn = connect();
@@ -328,8 +329,7 @@ public class SQLConnector {
         }
     }
 
-    //ADDED
-    // read single habit log
+    // Read single habit log
     public HabitLog getHabitLogById(int logId, int userId) {
         String sql = "SELECT LOG_ID, GOAL_ID, COMPLETED_DATE, NOTES FROM HABIT_LOGS WHERE LOG_ID = ? AND USER_ID = ?";
         try (Connection conn = connect();
@@ -363,7 +363,7 @@ public class SQLConnector {
         return null;
     }
 
-    // update 
+    // Update
     public boolean updateHabitLog(HabitLog log){
         String sql = "UPDATE HABIT_LOGS SET COMPLETED_DATE = ?, NOTES = ? WHERE LOG_ID = ? AND USER_ID = ?";
         try (Connection conn = connect();

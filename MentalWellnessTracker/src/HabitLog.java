@@ -14,7 +14,6 @@ public class HabitLog {
         this.completedDate = completedDate;
         this.note = note;
     }
-//    getters and setters
 
     public int getLogId() {
         return logId;

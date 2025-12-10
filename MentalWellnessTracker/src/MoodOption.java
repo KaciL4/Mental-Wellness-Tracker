@@ -1,8 +1,6 @@
 public class MoodOption {
-    private int moodOptionId;
-    private int moodLevel; //check between 1 and 5
-    private String moodLabel;
-    private String emoji;
+    private int moodOptionId, moodLevel; //check between 1 and 5
+    private String moodLabel, emoji;
 
     public MoodOption(int moodOptionId, int moodLevel, String moodLabel, String emoji) {
         this.moodOptionId = moodOptionId;
@@ -10,8 +8,6 @@ public class MoodOption {
         this.moodLabel = moodLabel;
         this.emoji = emoji;
     }
-//    getters and setters
-
     public int getMoodLevel() {
         return moodLevel;
     }
